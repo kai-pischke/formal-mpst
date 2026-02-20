@@ -1,0 +1,16 @@
+# Agda compiled interfaces
+*.agdai
+
+# Editor and swap files
+*~
+*.swp
+*.swo
+.#*
+\#*#
+
+# IDE metadata
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
