@@ -150,6 +150,17 @@ wf-target-→₁ : ∀ {Δ₀ p ζ T'} → wfΔ Δ₀ → Δ₀ -[ p ∶ ζ ]→
 wf-target-→₁ {Δ₀} {p} {ζ} {T'} wΔ red =
   subst wf (updateΔ-self {Δ₀} {p} {T'}) (wf-pres-→₁ wΔ red p)
 
+-- Fully unfold leading μ using well-formedness evidence.
+-- This is total because wf-mu provides a strictly smaller wf witness
+-- on unfold(mu body).
+unfold* : ∀ {T : Local₀} → wf T → Local₀
+unfold* {T = end}            wf-end            = end
+unfold* {T = send p B t}     (wf-send _)       = send p B t
+unfold* {T = recv p B t}     (wf-recv _)       = recv p B t
+unfold* {T = sel p bs}       (wf-sel _ _)      = sel p bs
+unfold* {T = bra p bs}       (wf-bra _ _)      = bra p bs
+unfold* {T = mu body}        (wf-mu _ wunfold) = unfold* wunfold
+
 wf-pres-→₂ : ∀ {Δ₀ ι Δ₁} → wfΔ Δ₀ → Δ₀ -[ ι ]→₂ Δ₁ → wfΔ Δ₁
 wf-pres-→₂ wΔ (LEnv {Δ₀} {p} {q} {U} {Tp'} {Tq'} pRed qRed) r with r ≟ q
 ... | yes _ = wf-target-→₁ wΔ qRed
