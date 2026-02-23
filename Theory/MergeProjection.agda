@@ -13,9 +13,9 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 import Core.BranchTables as BT
 import Syntax.LocalSessionTypes as LTS
 import Syntax.GlobalSessionTypes as GTS
-import Theory.WellFormedLocalTypes as WFL
-import Theory.WellFormedGlobalTypes as WFG
-import Theory.SessionSubtyping as SUB
+import Syntax.WellFormedLocalTypes as WFL
+import Syntax.WellFormedGlobalTypes as WFG
+import Theory.Subtyping.SessionSubtyping as SUB
 
 module L = LTS ℓ n
 module G = GTS ℓ n

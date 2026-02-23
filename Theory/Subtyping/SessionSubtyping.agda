@@ -1,12 +1,12 @@
 {-# OPTIONS --safe --guardedness #-}
 
-module Theory.SessionSubtyping (ℓ n : _) where
+module Theory.Subtyping.SessionSubtyping (ℓ n : _) where
 
 open import Data.Nat using (ℕ; suc)
 open import Data.Fin using (Fin)
 open import Data.Maybe using (Maybe; just; nothing)
 import Syntax.LocalSessionTypes as LTS
-import Theory.WellFormedLocalTypes as WF
+import Syntax.WellFormedLocalTypes as WF
 
 module L = LTS ℓ n
 module W = WF ℓ n

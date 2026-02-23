@@ -14,8 +14,8 @@ import Theory.MergeProjection as MP
 import Theory.LocalSemanticProperties as LSP
 import Semantics.LocalOperationalSemantics as LOS
 import Semantics.GlobalOperationalSemantics as GOS
-import Theory.SessionSubtypingProperties as SSP
-import Theory.WellFormedLocalTypes as WFLT
+import Theory.Subtyping.SessionSubtypingProperties as SSP
+import Syntax.WellFormedLocalTypes as WFLT
 
 module M = MP ℓ n
 module S = LSP ℓ n

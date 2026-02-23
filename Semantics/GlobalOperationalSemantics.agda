@@ -8,7 +8,7 @@ open import Data.Product using (Σ)
 open import Relation.Binary.PropositionalEquality using (_≡_)
 import Syntax.GlobalSessionTypes as GTS
 import Core.OperationalLabels as OL
-import Core.TransitionClosure as TC
+import Semantics.TransitionClosure as TC
 
 module G = GTS ℓ n
 module O = OL ℓ n

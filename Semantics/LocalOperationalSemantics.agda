@@ -8,7 +8,7 @@ open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality using (_≡_)
 import Syntax.LocalSessionTypes as LTS
 import Core.OperationalLabels as OL
-import Core.TransitionClosure as TC
+import Semantics.TransitionClosure as TC
 
 module L = LTS ℓ n
 module O = OL ℓ n

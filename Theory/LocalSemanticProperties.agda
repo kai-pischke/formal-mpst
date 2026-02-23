@@ -11,8 +11,8 @@ open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Relation.Nullary using (Dec; yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst; sym; trans; cong)
 import Semantics.LocalOperationalSemantics as LOS
-import Theory.SessionSubtypingProperties as SUB
-import Theory.WellFormedLocalTypes as WFL
+import Theory.Subtyping.SessionSubtypingProperties as SUB
+import Syntax.WellFormedLocalTypes as WFL
 import Core.SessionBase as SB
 
 module S = LOS ℓ n

@@ -6,7 +6,7 @@ and `n`, the number of participants.
 
 For this reason, most modules are of the form `ModuleName (ℓ n : _)`.
 
-## Main Syntactic Domains (`SessionBase.agda`)
+## Main Syntactic Domains (`Core/SessionBase.agda`)
 
 Each endpoint is modeled as a participant `p`.
 - `Participant = Fin n`
@@ -20,7 +20,7 @@ Payloads (`B ::= bool | nat | int`) represent the base sorts of communicated val
   - `nat`
   - `int`
 
-## Operational Labels (`OperationalLabels.agda`)
+## Operational Labels (`Core/OperationalLabels.agda`)
 
 An observable (`U ::= B | l`) is either a payload sort or a branch label. 
 This essentially represents *something that can be communicated*. 
@@ -46,7 +46,7 @@ This is used in local context and global type semantics.
 
 These are shared between local and global semantics.
 
-## Local Session Type Syntax (`LocalSessionTypes.agda`)
+## Local Session Type Syntax (`Syntax/LocalSessionTypes.agda`)
 
 The local syntax family is indexed by the number of recursion variables in scope:
 - `Local : ℕ → Set`
@@ -91,7 +91,7 @@ for absent branches.
 - `Δ = Participant → Local₀`
 - `updateΔ : Participant → Local₀ → Δ → Δ`
 
-## Global Session Type Syntax (`GlobalSessionTypes.agda`)
+## Global Session Type Syntax (`Syntax/GlobalSessionTypes.agda`)
 
 Global syntax is much the same as local syntax. 
 The grammar is as follows:

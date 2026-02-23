@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --guardedness #-}
 
-module Theory.WellFormedLocalTypes (ℓ n : _) where
+module Syntax.WellFormedLocalTypes (ℓ n : _) where
 
 open import Data.Bool using (Bool; true; false)
 open import Data.Nat using (suc)

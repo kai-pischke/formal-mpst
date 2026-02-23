@@ -26,7 +26,7 @@ import Syntax.GlobalSessionTypes as GTS
 import Theory.MergeProjection as MP
 import Theory.LocalSemanticProperties as LSP
 import Syntax.LocalSessionTypes as LTS
-import Theory.WellFormedLocalTypes as WFLT
+import Syntax.WellFormedLocalTypes as WFLT
 
 module G = GTS ℓ n
 module M = MP ℓ n

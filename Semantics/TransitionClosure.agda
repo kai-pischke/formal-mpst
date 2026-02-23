@@ -1,6 +1,6 @@
 {-# OPTIONS --safe #-}
 
-module Core.TransitionClosure where
+module Semantics.TransitionClosure where
 
 ------------------------------------------------------------------------
 -- Reflexive-transitive closure of a binary relation
