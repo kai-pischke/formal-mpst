@@ -5,6 +5,7 @@ module Subtyping.SessionSubtyping (ℓ n : _) where
 open import Data.Nat using (ℕ; suc)
 open import Data.Fin using (Fin)
 open import Data.Maybe using (Maybe; just; nothing)
+import Core.Delay as Delay
 import Syntax.LocalSessionTypes as LTS
 import Syntax.WellFormedLocalTypes as WF
 
@@ -12,6 +13,7 @@ module L = LTS ℓ n
 module W = WF ℓ n
 
 open W public using (wf)
+open Delay public using (▹; force; next)
 open L public using
   ( Label
   ; Participant
@@ -31,19 +33,6 @@ open L public using
   ; unfold
   )
 
-------------------------------------------------------------------------
--- A small delay modality to keep guardedness happy under Step
-------------------------------------------------------------------------
-
-record ▹ (A : Set) : Set where
-  coinductive
-  field force : A
-open ▹ public
-
-next : ∀ {A : Set} → A → ▹ A
-force (next a) = a
-
-------------------------------------------------------------------------
 -- Choice side-conditions, pointwise by label (no I ⊆ J proofs)
 ------------------------------------------------------------------------
 

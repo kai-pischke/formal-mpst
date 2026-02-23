@@ -10,6 +10,7 @@ open import Data.Vec using (Vec; tabulate)
 open import Data.Vec.Properties using (lookup∘tabulate)
 open import Relation.Nullary using (¬_; yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+import Core.Delay as Delay
 import Core.BranchTables as BT
 import Syntax.LocalSessionTypes as LTS
 import Syntax.GlobalSessionTypes as GTS
@@ -61,18 +62,7 @@ open G public using
 open W public using ()
 open WG public using ()
 open Sub public using (_≤Δ_)
-
-------------------------------------------------------------------------
--- Small delay modality (coinductive relations use guarded premises).
-------------------------------------------------------------------------
-
-record ▹ (A : Set) : Set where
-  coinductive
-  field force : A
-open ▹ public
-
-next : ∀ {A : Set} → A → ▹ A
-force (next a) = a
+open Delay public using (▹; force; next)
 
 ------------------------------------------------------------------------
 -- Finite-set encodings used by merge/projection.
