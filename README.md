@@ -1,4 +1,4 @@
-# Formal MPST (Agda) - Syntax Guide
+# Multiparty Session Types in Agda
 
 We represent labels and participants as finite sets. 
 So the project is parameterised by `ℓ`, the number of labels, 
