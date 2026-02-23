@@ -1,5 +1,7 @@
 # Multiparty Session Types in Agda
 
+This repository formalizes core multiparty session type syntax, operational semantics, subtyping, and synthesis in Agda. It is structured as a small mechanized development aimed at proving key metatheoretic properties.
+
 We represent labels and participants as finite sets. 
 So the project is parameterised by `ℓ`, the number of labels, 
 and `n`, the number of participants.
