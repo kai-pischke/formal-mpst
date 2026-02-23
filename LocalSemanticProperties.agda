@@ -2,24 +2,34 @@
 
 module LocalSemanticProperties (ℓ n : _) where
 
-open import Data.Maybe using (just)
-open import Data.Fin using (_≟_)
-open import Data.Empty using (⊥-elim)
+open import Data.Maybe using (just; nothing)
+open import Data.Nat using (zero; suc)
+open import Data.Fin using (Fin; _≟_) renaming (zero to fzero; suc to fsuc)
+open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Product using (_,_; Σ; _×_; proj₁; proj₂)
-open import Relation.Nullary using (yes; no)
+open import Data.Sum using (_⊎_; inj₁; inj₂)
+open import Relation.Nullary using (Dec; yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst; sym; trans; cong)
 import LocalOperationalSemantics as LOS
 import SessionSubtypingProperties as SUB
 import WellFormedLocalTypes as WFL
+import SessionBase as SB
 
 module S = LOS ℓ n
 module Sub = SUB ℓ n
 module W = WFL ℓ n
+module B = SB ℓ n
+
+open B using (Base; bool; nat; int)
 
 open S public using
   ( Participant
   ; Observable
   ; Local₀
+  ; send
+  ; recv
+  ; sel
+  ; bra
   ; Δ
   ; SafeState
   ; CanSync₂
@@ -32,7 +42,9 @@ open S public using
   ; _!⟨_⟩
   ; _?⟨_⟩
   ; _∶_
+  ; obsBase
   ; obsLabel
+  ; _↝⟨_⟩_
   ; _-[_]→ₗ_
   ; _-[_]→₁_
   ; _-[_]→₂_
@@ -80,11 +92,227 @@ open W public using
   ; wf-bra
   ; wf-mu
   ; lookupB
+  ; wfΔ
   )
 
 private
   R : Local₀ → Local₀ → Set
   R X Y = Sub.▹ (X ≤ Y)
+
+------------------------------------------------------------------------
+-- Decidable synchronous progress for well-formed contexts
+------------------------------------------------------------------------
+
+base-≟ : ∀ (b₁ b₂ : Base) → Dec (b₁ ≡ b₂)
+base-≟ bool bool = yes refl
+base-≟ bool nat  = no λ ()
+base-≟ bool int  = no λ ()
+base-≟ nat  bool = no λ ()
+base-≟ nat  nat  = yes refl
+base-≟ nat  int  = no λ ()
+base-≟ int  bool = no λ ()
+base-≟ int  nat  = no λ ()
+base-≟ int  int  = yes refl
+
+nothing≢just : ∀ {A : Set} {x : A} → just x ≡ nothing → ⊥
+nothing≢just ()
+
+findFin :
+  ∀ {m}
+  → (P : Fin m → Set)
+  → ((i : Fin m) → Dec (P i))
+  → Dec (Σ (Fin m) P)
+findFin {m = zero} P dec = no λ { (() , _) }
+findFin {m = suc m} P dec with dec fzero
+... | yes p0 = yes (fzero , p0)
+... | no ¬p0 with findFin {m = m} (λ i → P (fsuc i)) (λ i → dec (fsuc i))
+...   | yes (i , pi) = yes (fsuc i , pi)
+...   | no ¬ps = no λ where
+      (fzero  , p0) → ¬p0 p0
+      (fsuc i , pi) → ¬ps (i , pi)
+
+findObservable :
+  (P : Observable → Set)
+  → ((U : Observable) → Dec (P U))
+  → Dec (Σ Observable P)
+findObservable P dec with dec (obsBase bool)
+... | yes pbool = yes (obsBase bool , pbool)
+... | no ¬pbool with dec (obsBase nat)
+...   | yes pnat = yes (obsBase nat , pnat)
+...   | no ¬pnat with dec (obsBase int)
+...     | yes pint = yes (obsBase int , pint)
+...     | no ¬pint with findFin (λ l → P (obsLabel l)) (λ l → dec (obsLabel l))
+...       | yes (l , pl) = yes (obsLabel l , pl)
+...       | no ¬pl = no λ where
+            (obsBase bool , p) → ¬pbool p
+            (obsBase nat  , p) → ¬pnat p
+            (obsBase int  , p) → ¬pint p
+            (obsLabel l   , p) → ¬pl (l , p)
+
+send-step? :
+  ∀ {T q U}
+  → (wT : wf T)
+  → Dec (Σ Local₀ (λ T' → T -[ q !⟨ U ⟩ ]→ₗ T'))
+send-step? {q = q} {U = U} wf-end = no λ where ()
+send-step? {q = q} {U = U} (wf-send {p = p} {B = B} {t = t} wt) = decide (q ≟ p) U
+  where
+    decide :
+      Dec (q ≡ p)
+      → (U : Observable)
+      → Dec (Σ Local₀ (λ T' → send p B t -[ q !⟨ U ⟩ ]→ₗ T'))
+    decide (no q≢p) U = no λ where
+      (_ , LR1) → q≢p refl
+    decide (yes q≡p) (obsLabel l) = no λ where ()
+    decide (yes q≡p) (obsBase B') with base-≟ B' B
+    ... | no B'≢B = no λ where
+      (_ , LR1) → B'≢B refl
+    ... | yes B'≡B =
+      yes
+        ( t
+        , subst
+            (λ q₀ → send p B t -[ q₀ !⟨ obsBase B' ⟩ ]→ₗ t)
+            (sym q≡p)
+            (subst
+               (λ B₀ → send p B t -[ p !⟨ obsBase B₀ ⟩ ]→ₗ t)
+               (sym B'≡B)
+               LR1)
+        )
+send-step? {q = q} {U = U} (wf-recv wt) = no λ where ()
+send-step? {q = q} {U = U} (wf-sel {p = p} {bs = bs} ne wbs) = decide (q ≟ p) U
+  where
+    decide :
+      Dec (q ≡ p)
+      → (U : Observable)
+      → Dec (Σ Local₀ (λ T' → sel p bs -[ q !⟨ U ⟩ ]→ₗ T'))
+    decide (no q≢p) U = no λ where
+      (_ , LR3 hit) → q≢p refl
+    decide (yes q≡p) (obsBase B) = no λ where ()
+    decide (yes q≡p) (obsLabel l) with lookupB l bs in eq
+    ... | nothing = no λ where
+      (_ , LR3 hit) → nothing≢just (trans (sym hit) eq)
+    ... | just t rewrite q≡p = yes (t , LR3 eq)
+send-step? {q = q} {U = U} (wf-bra ne wbs) = no λ where ()
+send-step? {q = q} {U = U} (wf-mu g wunf) with send-step? {q = q} {U = U} wunf
+... | yes (T' , step) = yes (T' , LR5 step)
+... | no ¬step = no λ where
+    (_ , LR5 step) → ¬step ( _ , step)
+
+recv-step? :
+  ∀ {T q U}
+  → (wT : wf T)
+  → Dec (Σ Local₀ (λ T' → T -[ q ?⟨ U ⟩ ]→ₗ T'))
+recv-step? {q = q} {U = U} wf-end = no λ where ()
+recv-step? {q = q} {U = U} (wf-send wt) = no λ where ()
+recv-step? {q = q} {U = U} (wf-recv {p = p} {B = B} {t = t} wt) = decide (q ≟ p) U
+  where
+    decide :
+      Dec (q ≡ p)
+      → (U : Observable)
+      → Dec (Σ Local₀ (λ T' → recv p B t -[ q ?⟨ U ⟩ ]→ₗ T'))
+    decide (no q≢p) U = no λ where
+      (_ , LR2) → q≢p refl
+    decide (yes q≡p) (obsLabel l) = no λ where ()
+    decide (yes q≡p) (obsBase B') with base-≟ B' B
+    ... | no B'≢B = no λ where
+      (_ , LR2) → B'≢B refl
+    ... | yes B'≡B =
+      yes
+        ( t
+        , subst
+            (λ q₀ → recv p B t -[ q₀ ?⟨ obsBase B' ⟩ ]→ₗ t)
+            (sym q≡p)
+            (subst
+               (λ B₀ → recv p B t -[ p ?⟨ obsBase B₀ ⟩ ]→ₗ t)
+               (sym B'≡B)
+               LR2)
+        )
+recv-step? {q = q} {U = U} (wf-sel ne wbs) = no λ where ()
+recv-step? {q = q} {U = U} (wf-bra {p = p} {bs = bs} ne wbs) = decide (q ≟ p) U
+  where
+    decide :
+      Dec (q ≡ p)
+      → (U : Observable)
+      → Dec (Σ Local₀ (λ T' → bra p bs -[ q ?⟨ U ⟩ ]→ₗ T'))
+    decide (no q≢p) U = no λ where
+      (_ , LR4 hit) → q≢p refl
+    decide (yes q≡p) (obsBase B) = no λ where ()
+    decide (yes q≡p) (obsLabel l) with lookupB l bs in eq
+    ... | nothing = no λ where
+      (_ , LR4 hit) → nothing≢just (trans (sym hit) eq)
+    ... | just t rewrite q≡p = yes (t , LR4 eq)
+recv-step? {q = q} {U = U} (wf-mu g wunf) with recv-step? {q = q} {U = U} wunf
+... | yes (T' , step) = yes (T' , LR5 step)
+... | no ¬step = no λ where
+    (_ , LR5 step) → ¬step ( _ , step)
+
+tag-step-target' :
+  ∀ {Δ₀ p ζ Δ₁}
+  → (red : Δ₀ -[ p ∶ ζ ]→₁ Δ₁)
+  → Σ Local₀ (λ T' → (Δ₀ p -[ ζ ]→ₗ T') × (Δ₁ ≡ updateΔ p T' Δ₀))
+tag-step-target' (LTag step) = _ , (step , refl)
+
+canSync₂? :
+  ∀ (Δ₀ : Δ)
+  → wfΔ Δ₀
+  → (p q : Participant)
+  → (U : Observable)
+  → Dec (CanSync₂ Δ₀ p q U)
+canSync₂? Δ₀ wΔ p q U
+  with send-step? {T = Δ₀ p} {q = q} {U = U} (wΔ p)
+     | recv-step? {T = Δ₀ q} {q = p} {U = U} (wΔ q)
+... | yes (Tp' , pStep) | yes (Tq' , qStep) =
+  yes
+    ( updateΔ q Tq' (updateΔ p Tp' Δ₀)
+    , LEnv (LTag pStep) (LTag qStep)
+    )
+... | no ¬p | _ = no λ where
+    (Δ₁ , LEnv pRed qRed) →
+      let p-info = tag-step-target' pRed in
+      ¬p (proj₁ p-info , proj₁ (proj₂ p-info))
+... | _ | no ¬q = no λ where
+    (Δ₁ , LEnv pRed qRed) →
+      let q-info = tag-step-target' qRed in
+      ¬q (proj₁ q-info , proj₁ (proj₂ q-info))
+
+canStep₂? :
+  ∀ (Δ₀ : Δ)
+  → wfΔ Δ₀
+  → Dec (S.CanStep₂ Δ₀)
+canStep₂? Δ₀ wΔ
+  with findFin
+         (λ p →
+           Σ Participant (λ q →
+           Σ Observable (λ U →
+             CanSync₂ Δ₀ p q U)))
+         (λ p →
+            findFin
+              (λ q →
+                Σ Observable (λ U →
+                  CanSync₂ Δ₀ p q U))
+              (λ q →
+                 findObservable
+                   (λ U → CanSync₂ Δ₀ p q U)
+                   (λ U → canSync₂? Δ₀ wΔ p q U)))
+... | yes (p , (q , (U , (Δ₁ , sync)))) =
+  yes (Δ₁ , ((p ↝⟨ U ⟩ q) , sync))
+... | no ¬sync = no λ where
+    (Δ₁ , ((p ↝⟨ U ⟩ q) , sync)) → ¬sync (p , (q , (U , (Δ₁ , sync))))
+
+stuck₂? :
+  ∀ (Δ₀ : Δ)
+  → wfΔ Δ₀
+  → Dec (S.Stuck₂ Δ₀)
+stuck₂? Δ₀ wΔ with canStep₂? Δ₀ wΔ
+... | yes canStep = no (λ stuck → stuck canStep)
+... | no stuck    = yes stuck
+
+stepStatus :
+  ∀ (Δ₀ : Δ)
+  → wfΔ Δ₀
+  → S.Stuck₂ Δ₀ ⊎ S.CanStep₂ Δ₀
+stepStatus Δ₀ wΔ with canStep₂? Δ₀ wΔ
+... | yes canStep = inj₂ canStep
+... | no stuck    = inj₁ stuck
 
 ------------------------------------------------------------------------
 -- One-sided action monotonicity helper

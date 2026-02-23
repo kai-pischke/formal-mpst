@@ -3,21 +3,26 @@
 module ProjectionProperties (ℓ n : _) where
 
 open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Fin using (_≟_)
+open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Nat using (zero; suc)
+open import Data.Fin using (_≟_) renaming (zero to fzero; suc to fsuc)
 open import Data.Product using (Σ; _×_; _,_)
+open import Data.Vec using (Vec; []; _∷_; lookup; tabulate)
 open import Relation.Nullary using (yes; no)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; subst)
 import MergeProjection as MP
 import LocalSemanticProperties as LSP
 import LocalOperationalSemantics as LOS
 import GlobalOperationalSemantics as GOS
 import SessionSubtypingProperties as SSP
+import WellFormedLocalTypes as WFLT
 
 module M = MP ℓ n
 module S = LSP ℓ n
 module L = LOS ℓ n
 module G = GOS ℓ n
 module SubP = SSP ℓ n
+module WFL = WFLT ℓ n
 
 open M public using
   ( Global₀
@@ -25,94 +30,53 @@ open M public using
   ; Local₀
   ; Label
   ; Base
-  ; msg
-  ; choice
-  ; gmu
-  ; unfoldG
   ; send
   ; recv
-  ; sel
-  ; bra
-  ; mu
-  ; end
-  ; lookupGB
   ; lookupM
+  ; SendHeads
+  ; RecvHeads
+  ; send-none
+  ; send-hit
+  ; recv-none
+  ; recv-hit
   ; Participant
   ; _≢_
-  ; roll↾
-  ; out↾
-  ; force
-  ; next
-  ; ProjStep
-  ; PR1
-  ; PR2
-  ; PR3
-  ; PR4
-  ; PR5
-  ; PR6
-  ; PR7
-  ; PR8
-  ; PR9
-  ; BranchProj
-  ; _↾[_]_
-  ; _↾_
   ; _⊑_
   )
 
 open S public using
   ( safe
   ; SafeState
-  ; safe-downward-≤
-  ; stepSim≤-pair
   ; rtc-refl
   ; _≤Δ_
-  ; tag-step-target
   )
 
-open SubP using (_≤_; ≤-trans-ctx)
+open SubP using (≤-trans-ctx)
 
 open L using
   ( Observable
-  ; obsBase
-  ; obsLabel
+  ; Interaction
   ; _!⟨_⟩
   ; _?⟨_⟩
   ; _↝⟨_⟩_
-  ; LEnv
-  ; LTag
-  ; _-[_]→₂_
-  ; _-[_]→₁_
   ; _-[_]→ₗ_
   ; updateΔ
   ; LR1
   ; LR2
   ; LR3
-  ; LR4
   ; LR5
   )
 
 open G using
-  ( DisjointEndpoints
-  ; GR1
-  ; GR2
-  ; GR3
-  ; GR4
-  ; GR5
-  ; GM-none
+  ( GM-none
   ; GM-step
   ; GB-[]
   ; GB-∷
-  ; _-[_]→ᵍ_
   ; _-[_]→ᵐ_
   ; _-[_]→ᵇ_
   )
 
-updateΔ-self :
-  ∀ {Δ₀ : Δ} {p : Participant} {T : Local₀}
-  → updateΔ p T Δ₀ p ≡ T
-updateΔ-self {p = p} with p ≟ p
-... | yes _ = refl
-... | no p≢p = ⊥-elim (p≢p refl)
+open WFL using (updateΔ-self)
 
 updateΔ-other :
   ∀ {Δ₀ : Δ} {p r : Participant} {T : Local₀}
@@ -145,12 +109,114 @@ updateΔ₂-other {Δ₀} {p} {q} {r} {Tp} {Tq} r≢p r≢q =
   trans (updateΔ-other {Δ₀ = updateΔ p Tp Δ₀} {p = q} {r = r} r≢q)
         (updateΔ-other {Δ₀ = Δ₀} {p = p} {r = r} r≢p)
 
--- Main projection-safety theorem (left unproved for now).
-projection-safe :
-  ∀ {G : Global₀} {Δ₀ : Δ}
-  → G ↾ Δ₀
-  → safe Δ₀
-projection-safe G↾Δ = {!!}
+send-not-recv :
+  ∀ {T : Local₀} {p : Participant} {Obs : Observable} {T₁ T₂ : Local₀}
+  → T -[ p !⟨ Obs ⟩ ]→ₗ T₁
+  → T -[ p ?⟨ Obs ⟩ ]→ₗ T₂
+  → ⊥
+send-not-recv LR1 ()
+send-not-recv (LR3 _) ()
+send-not-recv (LR5 s₁) (LR5 s₂) = send-not-recv s₁ s₂
+
+gm-target-none→source-none :
+  ∀ {ι : Interaction} {mG : Maybe Global₀}
+  → mG -[ ι ]→ᵐ nothing
+  → mG ≡ nothing
+gm-target-none→source-none GM-none = refl
+
+gm-source-just→target-just :
+  ∀ {ι : Interaction} {G₀ : Global₀} {mG' : Maybe Global₀}
+  → just G₀ -[ ι ]→ᵐ mG'
+  → Σ Global₀ (λ G' → mG' ≡ just G')
+gm-source-just→target-just (GM-step _) = _ , refl
+
+send-head-none :
+  ∀ {q : Participant} {b : Base} {M K : M.MergeSet} {l : Label}
+  → SendHeads q b M K
+  → lookupM l M ≡ nothing
+  → lookupM l K ≡ nothing
+send-head-none {q} {b} {M} {K} {l} SH hit =
+  send-none-out (subst (λ x → M.SendEntry q b x (lookupM l K)) hit (SH l))
+  where
+    send-none-out :
+      ∀ {X : Maybe Local₀}
+      → M.SendEntry q b nothing X
+      → X ≡ nothing
+    send-none-out send-none = refl
+
+recv-head-none :
+  ∀ {q : Participant} {b : Base} {M K : M.MergeSet} {l : Label}
+  → RecvHeads q b M K
+  → lookupM l M ≡ nothing
+  → lookupM l K ≡ nothing
+recv-head-none {q} {b} {M} {K} {l} RH hit =
+  recv-none-out (subst (λ x → M.RecvEntry q b x (lookupM l K)) hit (RH l))
+  where
+    recv-none-out :
+      ∀ {X : Maybe Local₀}
+      → M.RecvEntry q b nothing X
+      → X ≡ nothing
+    recv-none-out recv-none = refl
+
+send-head-just :
+  ∀ {q : Participant} {b : Base} {M K : M.MergeSet} {l : Label} {Ti : Local₀}
+  → SendHeads q b M K
+  → lookupM l M ≡ just Ti
+  → Σ Local₀ (λ T → (Ti ≡ send q b T) × (lookupM l K ≡ just T))
+send-head-just {q} {b} {M} {K} {l} {Ti} SH hit =
+  send-just-out (subst (λ x → M.SendEntry q b x (lookupM l K)) hit (SH l))
+  where
+    send-just-out :
+      ∀ {X : Maybe Local₀}
+      → M.SendEntry q b (just Ti) X
+      → Σ Local₀ (λ T → (Ti ≡ send q b T) × (X ≡ just T))
+    send-just-out (send-hit {T}) = T , (refl , refl)
+
+recv-head-just :
+  ∀ {q : Participant} {b : Base} {M K : M.MergeSet} {l : Label} {Ti : Local₀}
+  → RecvHeads q b M K
+  → lookupM l M ≡ just Ti
+  → Σ Local₀ (λ T → (Ti ≡ recv q b T) × (lookupM l K ≡ just T))
+recv-head-just {q} {b} {M} {K} {l} {Ti} RH hit =
+  recv-just-out (subst (λ x → M.RecvEntry q b x (lookupM l K)) hit (RH l))
+  where
+    recv-just-out :
+      ∀ {X : Maybe Local₀}
+      → M.RecvEntry q b (just Ti) X
+      → Σ Local₀ (λ T → (Ti ≡ recv q b T) × (X ≡ just T))
+    recv-just-out (recv-hit {T}) = T , (refl , refl)
+
+branch-step-from-pointwise :
+  ∀ {m} {bs bs' : Vec (Maybe Global₀) m} {ι : Interaction}
+  → (∀ i → lookup bs i -[ ι ]→ᵐ lookup bs' i)
+  → bs -[ ι ]→ᵇ bs'
+branch-step-from-pointwise {m = zero} {bs = []} {bs' = []} f = GB-[]
+branch-step-from-pointwise {m = suc m} {bs = x ∷ xs} {bs' = y ∷ ys} f =
+  GB-∷ (f fzero)
+       (branch-step-from-pointwise {m = m} {bs = xs} {bs' = ys}
+         (λ i → f (fsuc i)))
+
+branch-step-to-tabulate :
+  ∀ {m} {bs : Vec (Maybe Global₀) m} {ι : Interaction}
+  → (f : Data.Fin.Fin m → Maybe Global₀)
+  → (∀ i → lookup bs i -[ ι ]→ᵐ f i)
+  → bs -[ ι ]→ᵇ tabulate f
+branch-step-to-tabulate {m = zero} {bs = []} f step = GB-[]
+branch-step-to-tabulate {m = suc m} {bs = x ∷ xs} f step =
+  GB-∷ (step fzero)
+       (branch-step-to-tabulate {m = m} {bs = xs}
+         (λ i → f (fsuc i))
+         (λ i → step (fsuc i)))
+
+sync-endpoints-distinct :
+  ∀ {Δ₀ : Δ} {src dst : Participant} {Obs : Observable} {Ts' Td' : Local₀}
+  → Δ₀ src -[ dst !⟨ Obs ⟩ ]→ₗ Ts'
+  → Δ₀ dst -[ src ?⟨ Obs ⟩ ]→ₗ Td'
+  → src ≢ dst
+sync-endpoints-distinct {Δ₀} {src} {dst} {Obs} {Ts'} {Td'} pStep qStep eq =
+  send-not-recv
+    (subst (λ x → Δ₀ src -[ x !⟨ Obs ⟩ ]→ₗ Ts') (sym eq) pStep)
+    (subst (λ x → Δ₀ x -[ src ?⟨ Obs ⟩ ]→ₗ Td') (sym eq) qStep)
 
 safe→SafeState :
   ∀ {Δ₀ : Δ}
@@ -165,48 +231,3 @@ safe→SafeState sΔ = sΔ rtc-refl
   → Δ₀ ⊑ G
 ⊑-down-≤ Δ₀≤Δ₁ (Δ' , (G↾Δ' , Δ₁≤Δ')) =
   Δ' , (G↾Δ' , ≤-trans-ctx Δ₀≤Δ₁ Δ₁≤Δ')
-
--- Helper 1 (to implement):
--- starting from an exact projection context step, produce
--- a matching global step and association for the target context.
-proj-pres-step-from-↾ :
-  ∀ {G : Global₀} {Δ₀ Δ₁ : Δ} {src dst : Participant} {Obs : Observable}
-  → G ↾ Δ₀
-  → Δ₀ -[ src ↝⟨ Obs ⟩ dst ]→₂ Δ₁
-  → Σ Global₀ (λ G' → (G -[ src ↝⟨ Obs ⟩ dst ]→ᵍ G') × (Δ₁ ⊑ G'))
-proj-pres-step-from-↾ G↾Δ₀ step = {!!}
-
--- Helper 2 (to implement):
--- transport projection of an uninvolved participant across one global step,
--- up to local subtyping.
-proj-uninvolved-step-≤ :
-  ∀ {G G' : Global₀} {src dst r : Participant} {Obs : Observable}
-  {Tr : Local₀}
-  → r ≢ src
-  → r ≢ dst
-  → G -[ src ↝⟨ Obs ⟩ dst ]→ᵍ G'
-  → G ↾[ r ] Tr
-  → Σ Local₀ (λ Tr' → (G' ↾[ r ] Tr') × (Tr ≤ Tr'))
-proj-uninvolved-step-≤ r≢src r≢dst G→G' G↾r = {!!}
-
-proj-pres-step :
-  ∀ {G : Global₀} {Δ₀ Δ₁ : Δ} {src dst : Participant} {Obs : Observable}
-  → Δ₀ ⊑ G
-  → Δ₀ -[ src ↝⟨ Obs ⟩ dst ]→₂ Δ₁
-  → Σ Global₀ (λ G' → (G -[ src ↝⟨ Obs ⟩ dst ]→ᵍ G') × (Δ₁ ⊑ G'))
-proj-pres-step {G} {Δ₀} {Δ₁} {src} {dst} {Obs} (Δproj , (G↾Δproj , Δ₀≤Δproj)) step₀
-  with stepSim≤-pair Δ₀≤Δproj
-         (safe→SafeState (projection-safe G↾Δproj))
-         step₀
-... | Δproj' , (stepproj , Δ₁≤Δproj')
-  with proj-pres-step-from-↾ G↾Δproj stepproj
-... | G' , (G→G' , Δproj'⊑G') =
-  G' , (G→G' , ⊑-down-≤ Δ₁≤Δproj' Δproj'⊑G')
-
--- Corollary using context-subtyping downward closure of safety.
-⊑-safe :
-  ∀ {G : Global₀} {Δ₀ : Δ}
-  → Δ₀ ⊑ G
-  → safe Δ₀
-⊑-safe (Δ' , (G↾Δ' , Δ₀≤Δ')) =
-  safe-downward-≤ Δ₀≤Δ' (projection-safe G↾Δ')

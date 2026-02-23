@@ -2,13 +2,14 @@
 
 module MergeProjection (ℓ n : _) where
 
-open import Data.Empty using (⊥)
+open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Fin using (_≟_)
 open import Data.Product using (Σ; _×_; _,_)
 open import Data.Vec using (Vec; tabulate)
+open import Data.Vec.Properties using (lookup∘tabulate)
 open import Relation.Nullary using (¬_; yes; no)
-open import Relation.Binary.PropositionalEquality using (_≡_)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 import BranchTables as BT
 import LocalSessionTypes as LTS
 import GlobalSessionTypes as GTS
@@ -90,13 +91,32 @@ lookupM = BT.lookupB
 lookupS : Label → BranchSet → Maybe MergeSet
 lookupS = BT.lookupB
 
+updM : Label → Maybe Local₀ → MergeSet → Label → Maybe Local₀
+updM l x M l' with l' ≟ l
+... | yes _ = x
+... | no  _ = lookupM l' M
+
 updateM : Label → Maybe Local₀ → MergeSet → MergeSet
-updateM l x M = tabulate upd
-  where
-    upd : Label → Maybe Local₀
-    upd l' with l' ≟ l
-    ... | yes _ = x
-    ... | no  _ = lookupM l' M
+updateM l x M = tabulate (updM l x M)
+
+lookup-updateM-same :
+  ∀ {l : Label} {x : Maybe Local₀} {M : MergeSet}
+  → lookupM l (updateM l x M) ≡ x
+lookup-updateM-same {l} {x} {M}
+  rewrite lookup∘tabulate (updM l x M) l
+  with l ≟ l
+... | yes _ = refl
+... | no l≢l = ⊥-elim (l≢l refl)
+
+lookup-updateM-other :
+  ∀ {l l' : Label} {x : Maybe Local₀} {M : MergeSet}
+  → l' ≢ l
+  → lookupM l' (updateM l x M) ≡ lookupM l' M
+lookup-updateM-other {l} {l'} {x} {M} l'≢l
+  rewrite lookup∘tabulate (updM l x M) l'
+  with l' ≟ l
+... | yes eq = ⊥-elim (l'≢l eq)
+... | no _ = refl
 
 collectLabel : Label → BranchSet → MergeSet
 collectLabel l S = tabulate pick
@@ -175,15 +195,39 @@ AnyJustAt l S =
 
 SelDomainCommon : BranchSet → MergeSet → Set
 SelDomainCommon S bs =
-  ∀ l
-  → (AllNoneAt l S → lookupM l bs ≡ nothing)
-  × (AllJustAt l S → Σ Local₀ (λ T → lookupM l bs ≡ just T))
+  (∀ l
+   → AllNoneAt l S
+   → lookupM l bs ≡ nothing)
+  ×
+  (∀ l
+   → AllJustAt l S
+   → Σ Local₀ (λ T → lookupM l bs ≡ just T))
+  ×
+  (∀ {l T}
+   → lookupM l bs ≡ just T
+   → AllJustAt l S)
+  ×
+  (∀ l
+   → lookupM l bs ≡ nothing
+   → AllNoneAt l S)
 
 BraDomainUnion : BranchSet → MergeSet → Set
 BraDomainUnion S bs =
-  ∀ l
-  → (AnyJustAt l S → Σ Local₀ (λ T → lookupM l bs ≡ just T))
-  × (AllNoneAt l S → lookupM l bs ≡ nothing)
+  (∀ l
+   → AnyJustAt l S
+   → Σ Local₀ (λ T → lookupM l bs ≡ just T))
+  ×
+  (∀ l
+   → AllNoneAt l S
+   → lookupM l bs ≡ nothing)
+  ×
+  (∀ {l T}
+   → lookupM l bs ≡ just T
+   → AnyJustAt l S)
+  ×
+  (∀ l
+   → lookupM l bs ≡ nothing
+   → AllNoneAt l S)
 
 ------------------------------------------------------------------------
 -- (1) Coinductive merge relation: M Π T
