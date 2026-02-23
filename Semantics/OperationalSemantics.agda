@@ -1,6 +1,6 @@
 {-# OPTIONS --safe #-}
 
-module OperationalSemantics (ℓ n : _) where
+module Semantics.OperationalSemantics (ℓ n : _) where
 
 open import Data.Bool using (Bool; true; false) renaming (not to notᵇ; _∨_ to _∨ᵇ_)
 open import Data.Nat using (ℕ; zero; suc)
@@ -12,7 +12,7 @@ open import Data.Maybe using (Maybe; just; nothing)
 open import Data.List using (List; []; _∷_; _++_)
 open import Relation.Nullary using (yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_)
-import ProcessSyntax as PS
+import Syntax.ProcessSyntax as PS
 
 module Syn = PS ℓ n
 open Syn public using

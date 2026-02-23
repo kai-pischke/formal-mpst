@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --guardedness #-}
 
-module MergeProjection (ℓ n : _) where
+module Theory.MergeProjection (ℓ n : _) where
 
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Maybe using (Maybe; just; nothing)
@@ -10,12 +10,12 @@ open import Data.Vec using (Vec; tabulate)
 open import Data.Vec.Properties using (lookup∘tabulate)
 open import Relation.Nullary using (¬_; yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-import BranchTables as BT
-import LocalSessionTypes as LTS
-import GlobalSessionTypes as GTS
-import WellFormedLocalTypes as WFL
-import WellFormedGlobalTypes as WFG
-import SessionSubtyping as SUB
+import Core.BranchTables as BT
+import Syntax.LocalSessionTypes as LTS
+import Syntax.GlobalSessionTypes as GTS
+import Theory.WellFormedLocalTypes as WFL
+import Theory.WellFormedGlobalTypes as WFG
+import Theory.SessionSubtyping as SUB
 
 module L = LTS ℓ n
 module G = GTS ℓ n

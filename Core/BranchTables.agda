@@ -1,6 +1,6 @@
 {-# OPTIONS --safe #-}
 
-module BranchTables where
+module Core.BranchTables where
 
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin; _≟_)

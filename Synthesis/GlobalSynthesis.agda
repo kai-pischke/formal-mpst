@@ -1,6 +1,6 @@
 {-# OPTIONS --guardedness #-}
 
-module GlobalSynthesis (ℓ n : _) where
+module Synthesis.GlobalSynthesis (ℓ n : _) where
 
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Nat.DivMod using (_mod_)
@@ -22,11 +22,11 @@ open import Data.Product using (Σ; _×_; _,_; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst; trans; cong)
-import GlobalSessionTypes as GTS
-import MergeProjection as MP
-import LocalSemanticProperties as LSP
-import LocalSessionTypes as LTS
-import WellFormedLocalTypes as WFLT
+import Syntax.GlobalSessionTypes as GTS
+import Theory.MergeProjection as MP
+import Theory.LocalSemanticProperties as LSP
+import Syntax.LocalSessionTypes as LTS
+import Theory.WellFormedLocalTypes as WFLT
 
 module G = GTS ℓ n
 module M = MP ℓ n

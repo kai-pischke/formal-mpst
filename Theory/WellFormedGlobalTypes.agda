@@ -1,13 +1,13 @@
 {-# OPTIONS --safe --guardedness #-}
 
-module WellFormedGlobalTypes (ℓ n : _) where
+module Theory.WellFormedGlobalTypes (ℓ n : _) where
 
 open import Data.Bool using (Bool; true; false)
 open import Data.Nat using (suc)
 open import Data.Fin using (Fin)
 open import Data.Maybe using (just)
 open import Relation.Binary.PropositionalEquality using (_≡_)
-import GlobalSessionTypes as GTS
+import Syntax.GlobalSessionTypes as GTS
 
 module G = GTS ℓ n
 

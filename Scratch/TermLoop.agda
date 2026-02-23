@@ -1,5 +1,5 @@
 {-# OPTIONS --safe #-}
-module TermLoop where
+module Scratch.TermLoop where
 f : Set → Set
 f x = g x
 

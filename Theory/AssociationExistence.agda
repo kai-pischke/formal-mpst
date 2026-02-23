@@ -1,10 +1,10 @@
 {-# OPTIONS --safe --guardedness #-}
 
-module AssociationExistence (ℓ n : _) where
+module Theory.AssociationExistence (ℓ n : _) where
 
 open import Data.Product using (Σ)
-import MergeProjection as MP
-import LocalSemanticProperties as LSP
+import Theory.MergeProjection as MP
+import Theory.LocalSemanticProperties as LSP
 
 module M = MP ℓ n
 module S = LSP ℓ n

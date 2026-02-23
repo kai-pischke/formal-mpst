@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --guardedness #-}
 
-module ProjectionProperties (ℓ n : _) where
+module Theory.ProjectionProperties (ℓ n : _) where
 
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Maybe using (Maybe; just; nothing)
@@ -10,12 +10,12 @@ open import Data.Product using (Σ; _×_; _,_)
 open import Data.Vec using (Vec; []; _∷_; lookup; tabulate)
 open import Relation.Nullary using (yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; subst)
-import MergeProjection as MP
-import LocalSemanticProperties as LSP
-import LocalOperationalSemantics as LOS
-import GlobalOperationalSemantics as GOS
-import SessionSubtypingProperties as SSP
-import WellFormedLocalTypes as WFLT
+import Theory.MergeProjection as MP
+import Theory.LocalSemanticProperties as LSP
+import Semantics.LocalOperationalSemantics as LOS
+import Semantics.GlobalOperationalSemantics as GOS
+import Theory.SessionSubtypingProperties as SSP
+import Theory.WellFormedLocalTypes as WFLT
 
 module M = MP ℓ n
 module S = LSP ℓ n

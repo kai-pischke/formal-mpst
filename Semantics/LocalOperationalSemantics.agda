@@ -1,14 +1,14 @@
 {-# OPTIONS --safe --guardedness #-}
 
-module LocalOperationalSemantics (ℓ n : _) where
+module Semantics.LocalOperationalSemantics (ℓ n : _) where
 
 open import Data.Maybe using (just)
 open import Data.Product using (Σ; proj₁; proj₂; _×_) renaming (_,_ to _,Σ_)
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality using (_≡_)
-import LocalSessionTypes as LTS
-import OperationalLabels as OL
-import TransitionClosure as TC
+import Syntax.LocalSessionTypes as LTS
+import Core.OperationalLabels as OL
+import Core.TransitionClosure as TC
 
 module L = LTS ℓ n
 module O = OL ℓ n

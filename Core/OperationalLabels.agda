@@ -1,9 +1,9 @@
 {-# OPTIONS --safe #-}
 
-module OperationalLabels (ℓ n : _) where
+module Core.OperationalLabels (ℓ n : _) where
 
 open import Data.Product using (_×_)
-import SessionBase as SB
+import Core.SessionBase as SB
 
 module Core = SB ℓ n
 open Core public using (Label; Participant; Base; _≢_)

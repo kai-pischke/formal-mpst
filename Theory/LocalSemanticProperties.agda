@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --guardedness #-}
 
-module LocalSemanticProperties (ℓ n : _) where
+module Theory.LocalSemanticProperties (ℓ n : _) where
 
 open import Data.Maybe using (just; nothing)
 open import Data.Nat using (zero; suc)
@@ -10,10 +10,10 @@ open import Data.Product using (_,_; Σ; _×_; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Relation.Nullary using (Dec; yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst; sym; trans; cong)
-import LocalOperationalSemantics as LOS
-import SessionSubtypingProperties as SUB
-import WellFormedLocalTypes as WFL
-import SessionBase as SB
+import Semantics.LocalOperationalSemantics as LOS
+import Theory.SessionSubtypingProperties as SUB
+import Theory.WellFormedLocalTypes as WFL
+import Core.SessionBase as SB
 
 module S = LOS ℓ n
 module Sub = SUB ℓ n

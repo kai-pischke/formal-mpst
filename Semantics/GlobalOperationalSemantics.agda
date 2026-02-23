@@ -1,14 +1,14 @@
 {-# OPTIONS --safe #-}
 
-module GlobalOperationalSemantics (ℓ n : _) where
+module Semantics.GlobalOperationalSemantics (ℓ n : _) where
 
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Vec using (Vec; []; _∷_)
 open import Data.Product using (Σ)
 open import Relation.Binary.PropositionalEquality using (_≡_)
-import GlobalSessionTypes as GTS
-import OperationalLabels as OL
-import TransitionClosure as TC
+import Syntax.GlobalSessionTypes as GTS
+import Core.OperationalLabels as OL
+import Core.TransitionClosure as TC
 
 module G = GTS ℓ n
 module O = OL ℓ n

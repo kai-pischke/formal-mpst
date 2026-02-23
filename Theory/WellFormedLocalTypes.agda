@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --guardedness #-}
 
-module WellFormedLocalTypes (ℓ n : _) where
+module Theory.WellFormedLocalTypes (ℓ n : _) where
 
 open import Data.Bool using (Bool; true; false)
 open import Data.Nat using (suc)
@@ -9,8 +9,8 @@ open import Data.Maybe using (just)
 open import Data.Empty using (⊥-elim)
 open import Relation.Nullary using (yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst)
-import LocalSessionTypes as LTS
-import LocalOperationalSemantics as LOS
+import Syntax.LocalSessionTypes as LTS
+import Semantics.LocalOperationalSemantics as LOS
 
 module L = LTS ℓ n
 module S = LOS ℓ n

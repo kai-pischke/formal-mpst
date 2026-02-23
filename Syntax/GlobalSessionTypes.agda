@@ -1,13 +1,13 @@
 {-# OPTIONS --safe #-}
 
-module GlobalSessionTypes (ℓ n : _) where
+module Syntax.GlobalSessionTypes (ℓ n : _) where
 
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Vec using (Vec; []; _∷_)
 open import Data.Maybe using (Maybe; just; nothing)
-import BranchTables as BT
-import SessionBase as SB
+import Core.BranchTables as BT
+import Core.SessionBase as SB
 
 module Core = SB ℓ n
 open Core public using (Label; Participant; Base; _≢_)

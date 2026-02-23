@@ -1,6 +1,6 @@
 {-# OPTIONS --safe #-}
 
-module SessionBase (ℓ n : _) where
+module Core.SessionBase (ℓ n : _) where
 
 open import Data.Fin using (Fin)
 open import Relation.Nullary using (¬_)

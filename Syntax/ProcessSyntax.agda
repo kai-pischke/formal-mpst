@@ -1,6 +1,6 @@
 {-# OPTIONS --safe #-}
 
-module ProcessSyntax (ℓ n : _) where
+module Syntax.ProcessSyntax (ℓ n : _) where
 
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Integer using (ℤ)
@@ -8,8 +8,8 @@ open import Data.Fin using (Fin; zero; suc; _≟_)
 open import Data.Vec using (Vec)
 open import Data.Maybe as Maybe using (Maybe; just; nothing)
 open import Relation.Nullary using (yes; no)
-import BranchTables as BT
-import SessionBase as SB
+import Core.BranchTables as BT
+import Core.SessionBase as SB
 
 module Core = SB ℓ n
 open Core public using (Label; Participant)

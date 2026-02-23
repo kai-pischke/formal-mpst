@@ -1,10 +1,10 @@
 {-# OPTIONS --safe --guardedness #-}
 
-module SessionSubtypingProperties (ℓ n : _) where
+module Theory.SessionSubtypingProperties (ℓ n : _) where
 
 open import Data.Maybe using (Maybe; just; nothing)
-import SessionSubtyping as ST
-import WellFormedLocalTypes as WF
+import Theory.SessionSubtyping as ST
+import Theory.WellFormedLocalTypes as WF
 
 module S = ST ℓ n
 module W = WF ℓ n
