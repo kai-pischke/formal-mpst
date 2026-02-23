@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --guardedness #-}
 
-module Theory.Subtyping.SessionSubtyping (ℓ n : _) where
+module Subtyping.SessionSubtyping (ℓ n : _) where
 
 open import Data.Nat using (ℕ; suc)
 open import Data.Fin using (Fin)

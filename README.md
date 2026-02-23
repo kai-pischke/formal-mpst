@@ -6,6 +6,15 @@ and `n`, the number of participants.
 
 For this reason, most modules are of the form `ModuleName (ℓ n : _)`.
 
+## Project Layout
+
+- `Core/`: shared finite-domain primitives and communication labels
+- `Syntax/`: local/global syntax and well-formedness definitions
+- `Semantics/`: local/global operational semantics and transition closure
+- `Subtyping/`: coinductive local subtyping and its properties
+- `Theory/`: merge/projection and semantic meta-theory
+- `Synthesis/`: global synthesis from local contexts
+
 ## Main Syntactic Domains (`Core/SessionBase.agda`)
 
 Each endpoint is modeled as a participant `p`.

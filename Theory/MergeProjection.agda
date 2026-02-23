@@ -15,7 +15,7 @@ import Syntax.LocalSessionTypes as LTS
 import Syntax.GlobalSessionTypes as GTS
 import Syntax.WellFormedLocalTypes as WFL
 import Syntax.WellFormedGlobalTypes as WFG
-import Theory.Subtyping.SessionSubtyping as SUB
+import Subtyping.SessionSubtyping as SUB
 
 module L = LTS ℓ n
 module G = GTS ℓ n

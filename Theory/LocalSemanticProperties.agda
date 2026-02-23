@@ -11,7 +11,7 @@ open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Relation.Nullary using (Dec; yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst; sym; trans; cong)
 import Semantics.LocalOperationalSemantics as LOS
-import Theory.Subtyping.SessionSubtypingProperties as SUB
+import Subtyping.SessionSubtypingProperties as SUB
 import Syntax.WellFormedLocalTypes as WFL
 import Core.SessionBase as SB
 
