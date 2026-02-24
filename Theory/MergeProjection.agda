@@ -108,13 +108,31 @@ lookup-updateM-other {l} {l'} {x} {M} l'≢l
 ... | yes eq = ⊥-elim (l'≢l eq)
 ... | no _ = refl
 
+collectPick : Label → BranchSet → Label → Maybe Local₀
+collectPick l S i with lookupS i S
+... | nothing  = nothing
+... | just bsᵢ = lookupM l bsᵢ
+
 collectLabel : Label → BranchSet → MergeSet
-collectLabel l S = tabulate pick
-  where
-    pick : Label → Maybe Local₀
-    pick i with lookupS i S
-    ... | nothing  = nothing
-    ... | just bsᵢ = lookupM l bsᵢ
+collectLabel l S = tabulate (collectPick l S)
+
+collectLabel-just :
+  ∀ {l l₀ : Label} {S : BranchSet} {bs₀ : MergeSet}
+  → lookupS l₀ S ≡ just bs₀
+  → lookupM l₀ (collectLabel l S) ≡ lookupM l bs₀
+collectLabel-just {l} {l₀} {S} {bs₀} eq
+  rewrite lookup∘tabulate (collectPick l S) l₀
+  with lookupS l₀ S
+collectLabel-just refl | just _  = refl
+
+collectLabel-nothing :
+  ∀ {l l₀ : Label} {S : BranchSet}
+  → lookupS l₀ S ≡ nothing
+  → lookupM l₀ (collectLabel l S) ≡ nothing
+collectLabel-nothing {l} {l₀} {S} eq
+  rewrite lookup∘tabulate (collectPick l S) l₀
+  with lookupS l₀ S
+collectLabel-nothing refl | nothing = refl
 
 wfMergeSet : MergeSet → Set
 wfMergeSet M =
@@ -288,6 +306,12 @@ mutual
       → BraDomainUnion S bs
       → LabelwiseMerge S bs
       → MergeStep M (bra q bs)
+
+    -- [M7] unfold the merged type (right-hand side)
+    M7 :
+      ∀ {M body}
+      → ▹ (M Π (unfold (mu body)))
+      → MergeStep M (mu body)
 
 open _Π_ public
 
